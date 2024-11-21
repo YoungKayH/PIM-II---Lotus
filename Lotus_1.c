@@ -9,21 +9,22 @@
 #define Limpar "cls"
 #endif
 
-// Definindo limites de produtos, usuários e itens no carrinho
-#define MAX_PRODUTOS 150
+// Definindo limites de produtos, usuÃ¡rios e itens no carrinho
+#define MAX_PRODUTOS 1000
 #define MAX_USUARIOS 10
 #define MAX_CARRINHO 50
 
-// Estrutura para armazenar informações dos produtos
+// Estrutura para armazenar informaÃ§Ãµes dos produtos
 typedef struct {
     int id;
     char nome[50];
     float preco;
     int estoque;
+    int quantidade;
     char validade[11]; //Data de validade no formato dd/mm/aa
 } Produto;
 
-// Estrutura para armazenar informações dos usuários
+// Estrutura para armazenar informaÃ§Ãµes dos usuÃ¡rios
 typedef struct {
     char nome[50];
     char senha[20];
@@ -36,7 +37,7 @@ typedef struct {
     int quantidade;
 } ItemCarrinho;
 
-//Funções utilizados para o programa
+//FunÃ§Ãµes utilizados para o programa
 int autenticarUsuario(Usuario usuarios[], int quantidade, Usuario *usuarioLogado);
 void Caixa(Produto produtos[], int quantidade);
 void visualizarProdutos();
@@ -55,9 +56,9 @@ int LeituraUsu(Usuario usuarios[], int *quantidadeUsuarios);
 void vendas(ItemCarrinho carrinho[], int carrinhoCount, float subtotal, char *formaPagamento, char *horario);
 void gerarRelatorio();
 void leituraprodutos(Produto produtos[], int *quantidade);
-void Caixaestoque(Produto produtos[], int quantidade);
+void Caixaestoque(ItemCarrinho carrinho[], int carrinhoCount);
 
-// Função principal
+// FunÃ§Ã£o principal
 int main() 
 {
     Produto produtos[MAX_PRODUTOS];
@@ -173,14 +174,14 @@ int main()
     return 0;
 }
 
-// Função para limpar o buffer do teclado
+// FunÃ§Ã£o para limpar o buffer do teclado
 void limparBuffer() 
 {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-// Função para validar a entrada de números inteiros
+// FunÃ§Ã£o para validar a entrada de nÃºmeros inteiros
 int validarEntradaNumerica(char *prompt) 
 {
     char entrada[20];
@@ -194,7 +195,7 @@ int validarEntradaNumerica(char *prompt)
         int valido = 1;
         for (i = 0; i < strlen(entrada) - 1; i++) 
 		{
-            if (!isdigit(entrada[i])) // Verifica se cada caractere é um dígito
+            if (!isdigit(entrada[i])) // Verifica se cada caractere Ã© um dÃ­gito
 			{ 
                 valido = 0;
                 printf("\n\tEntrada invalida! Apenas numeros sao permitidos ou numeros positivos.\n");
@@ -211,7 +212,7 @@ int validarEntradaNumerica(char *prompt)
     return numero;
 }
 
-// Função para validar a entrada de floats
+// FunÃ§Ã£o para validar a entrada de floats
 float validarEntradaNumericaFloat(char *prompt) 
 {
     char entrada[20];
@@ -255,7 +256,7 @@ void cadastrarProduto(Produto produtos[], int *quantidade)
     Produto novoProduto;
     system(Limpar);
     printf("\t\t\t-----Menu de Cadastro de Produtos-----\n\n");
-    novoProduto.id = *quantidade > 0 ? produtos[*quantidade - 1].id + 1 : 1;  // Geração de ID automatica
+    novoProduto.id = *quantidade > 0 ? produtos[*quantidade - 1].id + 1 : 1;  // GeraÃ§Ã£o de ID automatica
     printf("\tID do Produto: %d\n", novoProduto.id);
 	
 	limparBuffer();
@@ -305,11 +306,11 @@ void cadastrarProduto(Produto produtos[], int *quantidade)
         return;
     }
     
-    fseek(produtolista, 0, SEEK_END);// Verifica se o arquivo está vazio
+    fseek(produtolista, 0, SEEK_END);// Verifica se o arquivo estÃ¡ vazio
     if (ftell(produtolista) == 0) 
     {
         
-        fprintf(produtolista, "ID;NOME;PRECO;ESTOQUE;VALIDADE\n");// caso não tiver cabeçalho, ele será criado
+        fprintf(produtolista, "ID;NOME;PRECO;ESTOQUE;VALIDADE\n");// caso nÃ£o tiver cabeÃ§alho, ele serÃ¡ criado
     }
     
     fprintf(produtolista, "%d;%s;%.2f;%d;%s\n", 
@@ -346,10 +347,10 @@ void visualizarProdutos()
     printf("\t| %-10s | %-30s | %-10s | %-10s |\n", "ID", "Nome", "Preco", "Quantidade");
     printf("\t--------------------------------------------------------------\n");
 
-    // Ignora o cabeçalho do arquivo
+    // Ignora o cabeÃ§alho do arquivo
     fgets(linha, sizeof(linha), produtolista);
 
-    // Lê os produtos do arquivo
+    // LÃª os produtos do arquivo
     while (fgets(linha, sizeof(linha), produtolista)) 
     {
         sscanf(linha, "%d;%49[^;];%f;%d;%19[^\n]", 
@@ -407,7 +408,7 @@ void Caixa(Produto produtos[], int quantidade)
 		{
 			case 1:
 			printf("\tDeseja adicionar um produto a lista por (i)ID ou (n)Nome? (Digite 'S' para sair): ");
-        	scanf(" %c", &escolha); // Captura a escolha do usuário
+        	scanf(" %c", &escolha); // Captura a escolha do usuÃ¡rio
         	
         	if (escolha == 'S' || escolha == 's') break;
         	encontrado = 0;
@@ -424,7 +425,7 @@ void Caixa(Produto produtos[], int quantidade)
 						limparBuffer();
                     	qtd = validarEntradaNumerica("\tQuantos desse produto deseja adicionar ao carrinho? \n\t");
                     	
-                    	// Verifica se o estoque é suficiente
+                    	// Verifica se o estoque Ã© suficiente
                     	if (produtos[i].estoque < qtd) 
 						{
                             printf("\tEstoque insuficiente para este produto!\n");
@@ -459,7 +460,7 @@ void Caixa(Produto produtos[], int quantidade)
 					{
                     	qtd = validarEntradaNumerica("\tQuantos desse produto deseja adicionar ao carrinho? \n\t");
                     	
-                    	// Verifica se o estoque é suficiente
+                    	// Verifica se o estoque Ã© suficiente
                     	if (produtos[i].estoque < qtd) 
 						{
                             printf("\tEstoque insuficiente para este produto!\n");
@@ -494,9 +495,10 @@ void Caixa(Produto produtos[], int quantidade)
             	printf("\tProduto nao encontrado!\n");
             	sleep(5);
         	}
-        	
-        	// Atualiza o estoque no arquivo após cada venda
-        	Caixaestoque(produtos, quantidade);
+        	// Crie um array temporÃ¡rio apenas com os itens vendidos
+
+			// Chame a funÃ§Ã£o com os produtos vendidos
+			Caixaestoque(carrinho, carrinhoCount);
         	
         	// Exibe o resumo da venda
     		printf("\n\tDeseja pagar com o que: \n\t1. Dinheiro\n\t2. Cartao\n\t3. Pix\n\t");
@@ -635,10 +637,10 @@ int cadastrarUsuario(Usuario usuarios[], int *quantidadeUsuarios)
         return 1;
     }
 
-    fseek(usuario, 0, SEEK_END);// Verifica se o Arquivo está vazio
+    fseek(usuario, 0, SEEK_END);// Verifica se o Arquivo estÃ¡ vazio
     if (ftell(usuario) == 0) 
     {
-        // Arquivo vazio: escreve o cabeçalho
+        // Arquivo vazio: escreve o cabeÃ§alho
         fprintf(usuario, "NOME DO USUARIO;CARGO;SENHA\n");
     }
     
@@ -675,7 +677,7 @@ int cadastrarUsuario(Usuario usuarios[], int *quantidadeUsuarios)
     getchar();
 	system(Limpar);
 	
-    fclose(usuario); // Fecha o arquivo após o uso
+    fclose(usuario); // Fecha o arquivo apÃ³s o uso
     return 0;
 }
 
@@ -684,13 +686,13 @@ int validarNome(char *nome) //Basicamente serve para impedir do usuario colocar 
 {
     int i;
     for (i = 0; nome[i]; i++) {
-        if (!isalpha(nome[i]) && nome[i] != ' ') { // Permite apenas letras e espaços
+        if (!isalpha(nome[i]) && nome[i] != ' ') { // Permite apenas letras e espaÃ§os
             return 0;
         }
     }
     return 1;
 }
-void minusculo(char *str) //serve pra ver a difereciação de minusculo e maiusculo e deixar os dois iguais
+void minusculo(char *str) //serve pra ver a difereciaÃ§Ã£o de minusculo e maiusculo e deixar os dois iguais
 {
     int i;
     for (i = 0; str[i]; i++) {
@@ -713,7 +715,7 @@ void editarProduto()
     int i;
     int produtoEncontrado = 0;
     long int posicaoAtual;
-    FILE *tempFile; // Arquivo temporário
+    FILE *tempFile; // Arquivo temporÃ¡rio
 
     printf("\n\tDeseja editar ou remover: \n\t1. Editar\n\t2. Remover\n");
     scanf("%d", &opEdit);
@@ -726,22 +728,22 @@ void editarProduto()
             scanf("%d", &id);
             limparBuffer();
 
-            // Cria um arquivo temporário para armazenar os produtos editados
+            // Cria um arquivo temporÃ¡rio para armazenar os produtos editados
             tempFile = fopen("Produtos_temp.csv", "w");
             if (tempFile == NULL) 
             {
-                printf("\tErro ao criar o arquivo temporário!\n");
+                printf("\tErro ao criar o arquivo temporÃ¡rio!\n");
                 fclose(produtolista);
                 return;
             }
 
-            // Escreve o cabeçalho no arquivo temporário
+            // Escreve o cabeÃ§alho no arquivo temporÃ¡rio
             fprintf(tempFile, "ID;NOME;PRECO;ESTOQUE;VALIDADE\n");
 
-            // Lê o arquivo linha por linha
+            // LÃª o arquivo linha por linha
             while (fgets(linha, sizeof(linha), produtolista)) 
             {
-                // Ignora o cabeçalho
+                // Ignora o cabeÃ§alho
                 if (strstr(linha, "ID;NOME;PRECO;ESTOQUE;VALIDADE") != NULL) 
                 {
                     continue;
@@ -759,7 +761,7 @@ void editarProduto()
                 {
                     produtoEncontrado = 1;
 
-                    // Menu de edição
+                    // Menu de ediÃ§Ã£o
                     system(Limpar);
                     printf("\t----Menu de Alteracao----");
                     printf("\n\tEditar: \n\t1. Nome \n\t2. Preco \n\t3. Estoque\n");
@@ -767,7 +769,7 @@ void editarProduto()
                     scanf("%d", &opcao);
                     limparBuffer();
 
-                    // Editar produto conforme a opção
+                    // Editar produto conforme a opÃ§Ã£o
                     if (opcao == 1) 
                     {
                         printf("\tNovo nome: ");
@@ -802,7 +804,7 @@ void editarProduto()
                     }
                 }
                 
-                // Escreve no arquivo temporário a linha (modificada ou não)
+                // Escreve no arquivo temporÃ¡rio a linha (modificada ou nÃ£o)
                 fprintf(tempFile, "%d;%s;%.2f;%d;%s\n", 
                         produto.id, 
                         produto.nome,  
@@ -816,10 +818,12 @@ void editarProduto()
 
             if (produtoEncontrado) 
             {
-                // Substitui o arquivo original pelo temporário
+                // Substitui o arquivo original pelo temporÃ¡rio
                 remove("Produtos.csv");
                 rename("Produtos_temp.csv", "Produtos.csv");
                 printf("\tProduto editado com sucesso!\n");
+                sleep(2);
+                system(Limpar);
             } 
             else 
             {
@@ -833,19 +837,19 @@ void editarProduto()
             scanf("%d", &id);
             limparBuffer();
 
-            // Cria um arquivo temporário para armazenar os produtos restantes
+            // Cria um arquivo temporÃ¡rio para armazenar os produtos restantes
             tempFile = fopen("Produtos_temp.csv", "w");
             if (tempFile == NULL) 
             {
-                printf("\tErro ao criar o arquivo temporário!\n");
+                printf("\tErro ao criar o arquivo temporÃ¡rio!\n");
                 fclose(produtolista);
                 return;
             }
 
-            // Escreve o cabeçalho no arquivo temporário
+            // Escreve o cabeÃ§alho no arquivo temporÃ¡rio
             fprintf(tempFile, "ID;NOME;PRECO;ESTOQUE;VALIDADE\n");
 
-            // Lê o arquivo original e escreve no temporário, ignorando o produto a ser removido
+            // LÃª o arquivo original e escreve no temporÃ¡rio, ignorando o produto a ser removido
             produtoEncontrado = 0;
             while (fgets(linha, sizeof(linha), produtolista)) 
             {
@@ -863,7 +867,7 @@ void editarProduto()
 
                 if (produto.id != id) 
                 {
-                    // Escreve os produtos que não são o removido
+                    // Escreve os produtos que nÃ£o sÃ£o o removido
                     fprintf(tempFile, "%d;%s;%.2f;%d;%s\n", 
                             produto.id, 
                             produto.nome,  
@@ -881,7 +885,7 @@ void editarProduto()
             
             if (produtoEncontrado) 
             {
-                // Substitui o arquivo original pelo temporário
+                // Substitui o arquivo original pelo temporÃ¡rio
                 remove("Produtos.csv");
                 rename("Produtos_temp.csv", "Produtos.csv");
                 printf("\tProduto removido com sucesso!\n");
@@ -902,7 +906,7 @@ void editarProduto()
 void Doacao(Produto produtos[], int quantidade) 
 {
     time_t t = time(NULL);
-    struct tm *dataAtual = localtime(&t);  // Certifique-se de que <time.h> está incluída
+    struct tm *dataAtual = localtime(&t);  // Certifique-se de que <time.h> estÃ¡ incluÃ­da
 	int i;
     char validadeProduto[11];
     int diaProduto, mesProduto, anoProduto;
@@ -1052,7 +1056,7 @@ void gerarRelatorio()
     FILE *venda = fopen("Vendas.csv", "r"); // Abre o arquivo em modo leitura
     if (venda == NULL) 
     {
-        printf("\tErro: Nenhuma venda registrada ou arquivo 'Vendas.csv' não encontrado.\n");
+        printf("\tErro: Nenhuma venda registrada ou arquivo 'Vendas.csv' nÃ£o encontrado.\n");
         printf("\tPressione Enter para voltar ao menu.\n");
         limparBuffer();
         getchar();
@@ -1060,7 +1064,7 @@ void gerarRelatorio()
     }
 
     char linha[512]; // Buffer para leitura
-    int primeiraLinha = 1; // Flag para ignorar a primeira linha (cabeçalho)
+    int primeiraLinha = 1; // Flag para ignorar a primeira linha (cabeÃ§alho)
 
     printf("\n\t--- Relatorio de Vendas ---\n\n");
     printf("\t| %-10s | %-20s | %-10s | %-15s | %-15s | %-15s |\n", 
@@ -1071,12 +1075,12 @@ void gerarRelatorio()
     {
         if (primeiraLinha) 
         {
-            // Ignora a primeira linha (cabeçalho)
+            // Ignora a primeira linha (cabeÃ§alho)
             primeiraLinha = 0;
             continue;
         }
 
-        // Verifica se a linha não está vazia antes de imprimir
+        // Verifica se a linha nÃ£o estÃ¡ vazia antes de imprimir
         if (linha[0] != '\n' && linha[0] != '\0') 
         {
             printf("\t%s", linha);
@@ -1100,14 +1104,14 @@ void leituraprodutos(Produto produtos[], int *quantidade)
     char linha[256];
     int i = 0;
 
-    fgets(linha, sizeof(linha), produtosFile);// Esta linha serve apenas para ignorar o cabeçalho
+    fgets(linha, sizeof(linha), produtosFile);// Esta linha serve apenas para ignorar o cabeÃ§alho
 
-    // Lê os produtos do arquivo e os adiciona ao vetor
+    // LÃª os produtos do arquivo e os adiciona ao vetor
     while (fgets(linha, sizeof(linha), produtosFile)) 
 	{
         Produto produto;
         
-        sscanf(linha, "%d;%49[^;];%f;%d;%49[^\n]", &produto.id, produto.nome, &produto.preco, &produto.estoque, produto.validade);// Lê os dados de cada produto
+        sscanf(linha, "%d;%49[^;];%f;%d;%49[^\n]", &produto.id, produto.nome, &produto.preco, &produto.estoque, produto.validade);// LÃª os dados de cada produto
 
         produtos[i] = produto;  // Adiciona o produto ao array
         i++;
@@ -1116,9 +1120,8 @@ void leituraprodutos(Produto produtos[], int *quantidade)
     *quantidade = i;  // Serve para atualizar a lista de produtos
     fclose(produtosFile);
 }
-void Caixaestoque(Produto produtos[], int quantidade) 
+void Caixaestoque(ItemCarrinho carrinho[], int carrinhoCount) 
 {
-    // Abrir o arquivo para leitura
     FILE *produtolista = fopen("Produtos.csv", "r");
     if (produtolista == NULL) 
     {
@@ -1126,23 +1129,16 @@ void Caixaestoque(Produto produtos[], int quantidade)
         return;
     }
 
-    // Criar um array temporário para armazenar todos os produtos do arquivo
     Produto listaProdutos[MAX_PRODUTOS];
     int totalProdutos = 0;
-    
     char linha[256];
     int i, j;
 
-    // Lê os dados do arquivo e armazena na listaProdutos
     while (fgets(linha, sizeof(linha), produtolista)) 
     {
-        // Ignora o cabeçalho
-        if (strstr(linha, "ID;NOME;PRECO;ESTOQUE;VALIDADE") != NULL) 
-        {
+        if (strstr(linha, "ID;NOME;PRECO;ESTOQUE;VALIDADE") != NULL)
             continue;
-        }
-        
-        // Extraímos os dados do produto
+
         sscanf(linha, "%d;%49[^;];%f;%d;%19[^\n]", 
                &listaProdutos[totalProdutos].id, 
                listaProdutos[totalProdutos].nome, 
@@ -1154,70 +1150,55 @@ void Caixaestoque(Produto produtos[], int quantidade)
 
     fclose(produtolista);
 
-    // Agora atualizamos os estoques dos produtos com base na lista recebida
-    for (i = 0; i < quantidade; i++) 
+    // Atualizar o estoque com base nos itens do carrinho
+    for (i = 0; i < carrinhoCount; i++) 
     {
-        int encontrado = 0; // Flag para verificar se o produto foi encontrado
         for (j = 0; j < totalProdutos; j++) 
         {
-            if (produtos[i].id == listaProdutos[j].id) 
+            if (carrinho[i].produto.id == listaProdutos[j].id) 
             {
-                encontrado = 1;
-
-                // Verifica se há estoque suficiente
-                if (produtos[i].estoque > listaProdutos[j].estoque) 
+                if (listaProdutos[j].estoque < carrinho[i].quantidade) 
                 {
-                    printf("\tErro: Estoque insuficiente para o produto %s (ID: %d)\n", produtos[i].nome, produtos[i].id);
-                    continue;  // Pula para o próximo produto
+                    printf("\tErro: Estoque insuficiente para o produto %s (ID: %d)\n", 
+                           carrinho[i].produto.nome, carrinho[i].produto.id);
+                } 
+                else 
+                {
+                    listaProdutos[j].estoque -= carrinho[i].quantidade;
+                    printf("\tProduto %s (ID: %d) - Estoque atualizado: %d -> %d\n", 
+                           listaProdutos[j].nome, 
+                           listaProdutos[j].id, 
+                           listaProdutos[j].estoque + carrinho[i].quantidade, 
+                           listaProdutos[j].estoque);
                 }
-
-                // Decrementa a quantidade do estoque de acordo com a venda
-                listaProdutos[j].estoque -= produtos[i].estoque;
-                printf("\tProduto %s (ID: %d) - Estoque atualizado: %d -> %d\n", 
-                        listaProdutos[j].nome, 
-                        listaProdutos[j].id, 
-                        listaProdutos[j].estoque + produtos[i].estoque, 
-                        listaProdutos[j].estoque);
                 break;
             }
         }
-        
-        if (!encontrado) 
-        {
-            printf("\tProduto com ID %d não encontrado.\n", produtos[i].id);
-        }
     }
-
-    // Reabre o arquivo para escrita, apagando o conteúdo anterior
+    
     FILE *tempFile = fopen("Produtos_temp.csv", "w");
     if (tempFile == NULL) 
     {
-        printf("\tErro ao criar o arquivo temporário!\n");
+        printf("\tErro ao criar o arquivo temporÃ¡rio!\n");
         return;
     }
 
-    // Escreve o cabeçalho no arquivo temporário
     fprintf(tempFile, "ID;NOME;PRECO;ESTOQUE;VALIDADE\n");
 
-    // Escreve os produtos atualizados no arquivo temporário
     for (i = 0; i < totalProdutos; i++) 
     {
         fprintf(tempFile, "%d;%s;%.2f;%d;%s\n", 
                 listaProdutos[i].id, 
-                listaProdutos[i].nome,  
+                listaProdutos[i].nome, 
                 listaProdutos[i].preco, 
-                listaProdutos[i].estoque,  // Estoque atualizado
+                listaProdutos[i].estoque, 
                 listaProdutos[i].validade);
     }
 
     fclose(tempFile);
 
-    // Substitui o arquivo original pelo arquivo temporário
     remove("Produtos.csv");
     rename("Produtos_temp.csv", "Produtos.csv");
 
     printf("\tEstoque atualizado com sucesso!\n");
 }
-
-
-
